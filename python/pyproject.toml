@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "confluent-azure-openid-playground"
+version = "0.1.0"
+description = "Playground for experimenting with Azure Authentication for Confluent Cloud"
+authors = ["Eike Thaden <ethaden@confluent.io>"]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{include = "confluent_azure_openid_playground"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+azure-identity = "^1.14.0"
+request2 = "^0.2"
+pyjwt = {extras = ["crypto"], version = "^2.8.0"}
+pyyaml = "^6.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
