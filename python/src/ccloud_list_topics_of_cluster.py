@@ -25,7 +25,7 @@ def get_sts_token(pool_id: str, azure_access_token):
         raise Exception('Unable to authenticate!')
     return response.json()
 
-def main(app_id: str, pool_id: str, env_id: str):
+def main(app_id: str, pool_id: str, env_id: str, cluster_id: str):
     # Note, that while writing this comment, the feature of using the visual studio code extension to authenticate with Azure via DefaultAzureCredential is broken in the libs
     # To save some time, we disable this and the shared token method for now
     #default_credential = DefaultAzureCredential()
@@ -35,27 +35,39 @@ def main(app_id: str, pool_id: str, env_id: str):
     # Run "az login" and login to Azure with your acount (via web browser)
     try:
         azure_access_token = default_credential.get_token(f'{app_id}/.default')
+        headers_kafka_rest_api = {
+            'Authorization': 'Bearer {}'.format(azure_access_token.token),
+            'Confluent-Identity-Pool-Id': pool_id
+        }
         # Use Confluent STS API to exchange
         ccloud_token = get_sts_token(pool_id=pool_id, azure_access_token=azure_access_token)
-        header = {
+        headers_ccloud_api = {
             'Authorization': 'Bearer {}'.format(ccloud_token['access_token'])
         }
-        initial_url = f'https://api.confluent.cloud/cmk/v2/clusters?environment={env_id}&page_size=10'
+        cluster_data_url = f'https://api.confluent.cloud/cmk/v2/clusters/{cluster_id}?environment={env_id}'
+        response = requests.get(cluster_data_url, headers=headers_ccloud_api)
+        if response.status_code != 200:
+            raise Exception('Unable to get metadata of cluster')
+        cluster_metadata = response.json()
+        cluster_name = cluster_metadata.get('spec').get('display_name')
+        cluster_base_url =  cluster_metadata.get('spec').get('http_endpoint')
+        
+        initial_url = f'{cluster_base_url}/kafka/v3/clusters/{cluster_id}/topics'
         current_url = initial_url
         # Traverse all result pages, starting with initial one
-        print ('Found the following clusters:')
+        print (f'Found the following topics in cluster "{cluster_name}":')
         while current_url is not None:
-            response = requests.get(current_url, headers=header)
+            response = requests.get(current_url, headers=headers_kafka_rest_api)
             current_url = None
             if response.status_code != 200:
-                raise Exception('Unable to list clusters')
+                raise Exception('Unable to list topics')
             response_json = response.json()
             metadata = response_json.get('metadata', None)
             if metadata is not None:
                 current_url = metadata.get('next', None)
             clusters = response_json['data']
             for cluster in clusters:
-                print (f'{cluster["spec"]["display_name"]} ({cluster["id"]})')
+                print (f'{cluster["topic_name"]}')
             # Potenially wait for seconds specified by server until sending next request
             rate_limit_reset_secs = int(response.headers.get('Retry-After', '0'))
             time.sleep(rate_limit_reset_secs)
@@ -81,18 +93,21 @@ if __name__=='__main__':
     parser.add_argument('--app-id', '-a', help='The Id of the Azure App Registration configured in the Confluent Cloud Identity Pool', default=None)
     parser.add_argument('--pool-id', '-p', help='The Id of the Identity Pool configured in Confluent Cloud', default=None)
     parser.add_argument('--env-id', '-e', help='The environment Id')
+    parser.add_argument('--cluster-id', '-k', help='The cluster Id')
     parser.add_argument('--config', '-c', help='A config file', default=None)
     parsed_args = parser.parse_args()
     config_file_name = parsed_args.config
     app_id = parsed_args.app_id
     pool_id = parsed_args.pool_id
     env_id = parsed_args.env_id
+    cluster_id = parsed_args.cluster_id
     if config_file_name is not None and config_file_name!="":
         config = read_config_file(config_file_name)
         if app_id is None: app_id = config.get('app_id', None)
-        if pool_id is None: pool_id = config.get('pool_id', None) 
-        if env_id is None: env_id = config.get('env_id', None)   
-    if app_id is None or pool_id is None or env_id is None:
+        if pool_id is None: pool_id = config.get('pool_id', None)
+        if env_id is None: env_id = config.get('env_id', None)
+        if cluster_id is None: cluster_id = config.get('cluster_id', None)
+    if app_id is None or pool_id is None or env_id is None or cluster_id is None:
         print ('Please provide either a config file or all individual values as parameters')
         exit (1)
-    main(app_id, pool_id, env_id)
+    main(app_id, pool_id, env_id, cluster_id)

@@ -21,6 +21,15 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": ["--config", "python/config.yaml"]
+        },
+        {
+            "name": "Python: List topics of cluster",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/python/src/ccloud_list_topics_of_cluster.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--config", "python/config.yaml"]
         }
     ]
 }
