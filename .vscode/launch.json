@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: List environments",
             "type": "python",
@@ -27,6 +28,15 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/python/src/ccloud_list_topics_of_cluster.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--config", "python/config.yaml"]
+        },
+        {
+            "name": "Python: Produce to topic",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/python/src/ccloud_produce_to_topic.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": ["--config", "python/config.yaml"]

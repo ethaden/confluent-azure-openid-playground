@@ -4,7 +4,7 @@ import argparse
 
 from azure.identity import DefaultAzureCredential
 
-def decode(access_token: str):
+def decode_jwt(access_token: str):
     alg = jwt.get_unverified_header(access_token)['alg']
     decoded = jwt.decode(access_token, algorithms=[alg], options={"verify_signature": False})
     return decoded
@@ -20,4 +20,4 @@ if __name__=='__main__':
     #parsed_args = parser.parse_args(args=sys.argv)
     parsed_args = parser.parse_args()
     access_token = parsed_args.access_token
-    print(decode(access_token))
+    print(decode_jwt(access_token))

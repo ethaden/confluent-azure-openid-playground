@@ -13,6 +13,7 @@ azure-identity = "^1.14.0"
 request2 = "^0.2"
 pyjwt = {extras = ["crypto"], version = "^2.8.0"}
 pyyaml = "^6.0.1"
+confluent-kafka = "^2.2.0"
 
 
 [build-system]
