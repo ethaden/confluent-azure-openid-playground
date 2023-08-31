@@ -40,6 +40,15 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": ["--config", "python/config.yaml"]
+        },
+        {
+            "name": "Python: Consume from topic",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/python/src/ccloud_consume_from_topic.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--config", "python/config.yaml"]
         }
     ]
 }
