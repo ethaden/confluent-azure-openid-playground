@@ -1,9 +1,12 @@
 import sys
-import time
+import functools
 import argparse
+import time
 import requests
+import logging
 
-from confluent_kafka import Producer
+from confluent_kafka import Producer, SerializingProducer
+from confluent_kafka.serialization import StringSerializer
 import socket
 
 from ccloud_base import CCloud_Azure_Base, ClientAuthenticationError, read_config_file
@@ -41,18 +44,35 @@ class CCloud_Azure_Producer(CCloud_Azure_Base):
             kafka_bootstrap_endpoint = cluster_metadata.get('spec').get('kafka_bootstrap_endpoint')
             print (cluster_base_url)
 
+            logger = logging.getLogger(__name__)
+            string_serializer = StringSerializer('utf_8')
             client_config = {
                 'bootstrap.servers': kafka_bootstrap_endpoint,
                 'client.id': socket.gethostname(),
-                'security.protocol': 'SASL_SSL'
+                'security.protocol': 'SASL_SSL',
+                'sasl.mechanism': 'OAUTHBEARER',
+                'oauth_cb': lambda config_str: self.get_azure_token_with_expiry(self._cluster_id, config_str),
+                'logger': logger,
+                'key.serializer': string_serializer,
+                'value.serializer': string_serializer,
             }
-            producer = Producer(client_config)
+            producer = SerializingProducer(client_config)
             for counter in range(10):
-                pass
+                producer.poll(0.0)
+                producer.produce(self._topic, key='key', value=f'{counter}', 
+                    on_delivery = lambda err, msg: self.delivery_report(err, msg))
+                time.sleep(1)
+            producer.flush()
 
         except ClientAuthenticationError as exc:
             print (f'Unable to authenticate to Azure: {str(exc)}')
             exit(1)
+    def delivery_report(self, err, msg):
+        if err is not None:
+            print('Delivery failed for User record {}: {}'.format(msg.key(), err))
+            return
+        print('User record {} successfully produced to {} [{}] at offset {}'.format(
+            msg.key(), msg.topic(), msg.partition(), msg.offset()))
 
 if __name__=='__main__':
     if sys.version_info >= (3, 9):

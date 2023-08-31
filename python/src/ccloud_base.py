@@ -43,7 +43,7 @@ class CCloud_Azure_Base:
             expiration = int(self._azure_token_access_token_decoded['exp'])
             now = int(time.time())
             if expiration - now >= self._min_token_validity:
-                return self._azure_token.token, False
+                return self._azure_token, False
 
         self._azure_token = self._default_credential.get_token(f'{self._app_id}/.default')
         self._azure_token_access_token_decoded = self.decode_jwt(self._azure_token.token)
@@ -54,12 +54,16 @@ class CCloud_Azure_Base:
         # print ('Decoded:')
         # print (decode_jwt(self._azure_token.token))
         # print ('#####################################')
-        return self._azure_token.token, True
+        return self._azure_token, True
+    
+    def get_azure_token_with_expiry(self, cluster_id, config_str)->Tuple[str, float, str, Dict[str, str]]:
+        token, _ = self._get_azure_token()
+        return (token.token, time.time() + float(self._azure_token_access_token_decoded['exp']), '', {'logicalCluster': cluster_id, 'identityPoolId': self._pool_id})
 
     @property
     def azure_token(self)->str:
         token, _ = self._get_azure_token()
-        return token
+        return token.token
     
     @property
     def ccloud_sts_token(self)->str:
@@ -72,7 +76,7 @@ class CCloud_Azure_Base:
                     return self._ccloud_token['access_token']
 
         data = {'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token': azure_token,
+                'subject_token': azure_token.token,
                 'identity_pool_id': self._pool_id,
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:jwt',
                 'requested_token_type': 'urn:ietf:params:oauth:token-type:access_token'}
