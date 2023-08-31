@@ -6,7 +6,7 @@ import time
 import requests
 import logging
 
-from confluent_kafka import DeserializingConsumer, KafkaException
+from confluent_kafka import DeserializingConsumer, KafkaException, KafkaError
 from confluent_kafka.serialization import StringDeserializer
 import socket
 
@@ -18,11 +18,13 @@ from ccloud_base import CCloud_Azure_Base, ClientAuthenticationError, read_confi
 
 class CCloud_Azure_Consumer(CCloud_Azure_Base):
 
-    def __init__(self, app_id: str, pool_id: str, env_id: str, cluster_id: str, topic: str):
+    def __init__(self, app_id: str, pool_id: str, env_id: str, cluster_id: str, topic: str, client_id: str=None, consumer_group_id: str=None):
         super().__init__(app_id, pool_id)
         self._env_id = env_id
         self._cluster_id = cluster_id
         self._topic = topic
+        self._client_id = client_id
+        self._consumer_group_id = consumer_group_id
 
     def run(self):
         try:
@@ -49,14 +51,14 @@ class CCloud_Azure_Consumer(CCloud_Azure_Base):
             string_deserializer = StringDeserializer('utf_8')
             client_config = {
                 'bootstrap.servers': kafka_bootstrap_endpoint,
-                'client.id': socket.gethostname(),
+                'client.id': self._client_id or socket.gethostname(),
                 'security.protocol': 'SASL_SSL',
                 'sasl.mechanism': 'OAUTHBEARER',
                 'oauth_cb': lambda config_str: self.get_azure_token_with_expiry(self._cluster_id, config_str),
                 'logger': logger,
                 'key.deserializer': string_deserializer,
                 'value.deserializer': string_deserializer,
-                'group.id': random.randint(0, 10000000),
+                'group.id': self._consumer_group_id or random.randint(0, 10000000),
                 'auto.offset.reset': 'smallest'
             }
             consumer = DeserializingConsumer(client_config)
@@ -102,14 +104,18 @@ if __name__=='__main__':
     parser.add_argument('--env-id', '-e', help='The environment Id')
     parser.add_argument('--cluster-id', '-k', help='The cluster Id')
     parser.add_argument('--topic', '-t', help='The topic name')
+    parser.add_argument('--client-id', '-i', help='The client ID (if not specified, te hostname is used)')
+    parser.add_argument('--consumer-group-id', '-g', help='The conumser group ID (if not specified, a random number is used)')
     parser.add_argument('--config', '-c', help='A config file', default=None)
     parsed_args = parser.parse_args()
     config_file_name = parsed_args.config
     app_id = parsed_args.app_id
     pool_id = parsed_args.pool_id
     env_id = parsed_args.env_id
-    cluster_id = parsed_args.cluster_id
     topic = parsed_args.topic
+    cluster_id = parsed_args.cluster_id
+    client_id = parsed_args.client_id
+    consumer_group_id = parsed_args.consumer_group_id
     if config_file_name is not None and config_file_name!="":
         config = read_config_file(config_file_name)
         if app_id is None: app_id = config.get('app_id', None)
@@ -117,8 +123,10 @@ if __name__=='__main__':
         if env_id is None: env_id = config.get('env_id', None)
         if cluster_id is None: cluster_id = config.get('cluster_id', None)
         if topic is None: topic = config.get('topic', None)
+        if cluster_id is None: cluster_id = config.get('cluster_id', None)
+        if consumer_group_id is None: consumer_group_id = config.get('consumer_group_id', None)
     if app_id is None or pool_id is None or env_id is None or cluster_id is None or topic is None:
         print ('Please provide either a config file or all individual values as parameters')
         exit (1)
-    consumer = CCloud_Azure_Consumer(app_id, pool_id, env_id, cluster_id, topic)
+    consumer = CCloud_Azure_Consumer(app_id, pool_id, env_id, cluster_id, topic, client_id, consumer_group_id)
     consumer.run()

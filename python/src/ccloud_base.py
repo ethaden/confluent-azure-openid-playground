@@ -58,7 +58,7 @@ class CCloud_Azure_Base:
     
     def get_azure_token_with_expiry(self, cluster_id, config_str)->Tuple[str, float, str, Dict[str, str]]:
         token, _ = self._get_azure_token()
-        return (token.token, time.time() + float(self._azure_token_access_token_decoded['exp']), '', {'logicalCluster': cluster_id, 'identityPoolId': self._pool_id})
+        return (token.token, float(self._azure_token_access_token_decoded['exp']), '', {'logicalCluster': cluster_id, 'identityPoolId': self._pool_id})
 
     @property
     def azure_token(self)->str:

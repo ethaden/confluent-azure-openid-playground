@@ -3,3 +3,5 @@ pool_id: pool-ABCD
 env_id: t1234556
 cluster_id: 123456
 topic: test
+client_id: example
+consumer_group_id: example
