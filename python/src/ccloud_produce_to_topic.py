@@ -57,6 +57,7 @@ class CCloud_Azure_Producer(CCloud_Azure_Base):
                 'logger': logger,
                 'key.serializer': string_serializer,
                 'value.serializer': string_serializer,
+                'partitioner': 'murmur2'
             }
             producer = SerializingProducer(client_config)
             while True:
