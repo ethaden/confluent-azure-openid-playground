@@ -24,7 +24,7 @@ class CCloud_Azure_Environment_Lister(CCloud_Azure_Base):
             initial_url = 'https://api.confluent.cloud/org/v2/environments?page_size=10'
             current_url = initial_url
             # Traverse all result pages, starting with initial one
-            print ('Found the following clusters:')
+            print ('Found the following environments:')
             while current_url is not None:
                 headers_ccloud_api = {
                     'Authorization': 'Bearer {}'.format(self.ccloud_sts_token)
