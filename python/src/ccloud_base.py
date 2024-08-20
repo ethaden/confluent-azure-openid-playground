@@ -24,7 +24,7 @@ class CCloud_Azure_Base:
         # Note, that while writing this comment, the feature of using the visual studio code extension to authenticate with Azure via DefaultAzureCredential is broken in the libs
         # To save some time, we disable this and the shared token method for now
         #default_credential = DefaultAzureCredential()
-        self._default_credential = DefaultAzureCredential(exclude_visual_studio_code_credential=True, exclude_shared_token_cache_credential=True)
+        self._default_credential = DefaultAzureCredential(exclude_visual_studio_code_credential=False, exclude_shared_token_cache_credential=True)
         self._azure_token = None
         self._azure_token_access_token_decoded = None
         self._ccloud_token = None

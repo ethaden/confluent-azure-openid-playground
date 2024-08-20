@@ -17,13 +17,13 @@ poetry config --local virtualenvs.in-project true
 For development including tools for generating documentation, use:
 
 ```bash
-poetry install
+poetry install --no-root
 ```
 
 For installing only the packages required to run the tool, use:
 
 ```bash
-poetry install --without dev
+poetry install --without dev --no-root
 ```
 
 ### Runing the code
