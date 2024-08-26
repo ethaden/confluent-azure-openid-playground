@@ -10,16 +10,18 @@ from confluent_kafka import Producer, SerializingProducer
 from confluent_kafka.serialization import StringSerializer
 import socket
 
-from ccloud_base import CCloud_Azure_Base, ClientAuthenticationError, read_config_file
+from ccloud_util import read_config_file
+from ccloud_auth_provider_azure import CCloud_Auth_Provider_Azure, AuthenticationError
+from ccloud_auth_provider_base import CCloud_Auth_Provider_Base
 
 # Acquire an Azure access token from the specified App Registration and the given scope configured in there
 # Make sure that this app registration issues JWT 2.0 tokens (update its manifest!)
 # Run "az login" and login to Azure with your acount (via web browser)
 
-class CCloud_Azure_Producer(CCloud_Azure_Base):
+class CCloud_Azure_Producer:
 
-    def __init__(self, app_id: str, pool_id: str, env_id: str, cluster_id: str, topic: str, client_id: str=None):
-        super().__init__(app_id, pool_id)
+    def __init__(self, auth_provider: CCloud_Auth_Provider_Base, env_id: str, cluster_id: str, topic: str, client_id: str=None):
+        self._auth_provider = auth_provider
         self._env_id = env_id
         self._cluster_id = cluster_id
         self._topic = topic
@@ -27,15 +29,8 @@ class CCloud_Azure_Producer(CCloud_Azure_Base):
 
     def run(self):
         try:
-            headers_kafka_rest_api = {
-                'Authorization': 'Bearer {}'.format(self.azure_token),
-                'Confluent-Identity-Pool-Id': self.pool_id
-            }
-            # Use Confluent STS API to exchange
-            headers_ccloud_api = {
-                'Authorization': 'Bearer {}'.format(self.ccloud_sts_token)
-            }
             cluster_data_url = f'https://api.confluent.cloud/cmk/v2/clusters/{self._cluster_id}?environment={self._env_id}'
+            headers_ccloud_api = self._auth_provider.get_auth_header(cluster_data_url)
             response = requests.get(cluster_data_url, headers=headers_ccloud_api)
             if response.status_code != 200:
                 error_msg = response.json().get('errors')[0].get('detail')
@@ -53,7 +48,7 @@ class CCloud_Azure_Producer(CCloud_Azure_Base):
                 'client.id': self._client_id or socket.gethostname(),
                 'security.protocol': 'SASL_SSL',
                 'sasl.mechanism': 'OAUTHBEARER',
-                'oauth_cb': lambda config_str: self.get_azure_token_with_expiry(self._cluster_id, config_str),
+                'oauth_cb': lambda config_str: self._auth_provider.get_azure_token_with_expiry(self._cluster_id, config_str),
                 'logger': logger,
                 'key.serializer': string_serializer,
                 'value.serializer': string_serializer,
@@ -68,8 +63,8 @@ class CCloud_Azure_Producer(CCloud_Azure_Base):
                 time.sleep(1)
             producer.flush()
 
-        except ClientAuthenticationError as exc:
-            print (f'Unable to authenticate to Azure: {str(exc)}')
+        except AuthenticationError as exc:
+            print (f'Unable to authenticate: {str(exc)}')
             exit(1)
     def delivery_report(self, err, msg):
         if err is not None:
@@ -90,6 +85,8 @@ if __name__=='__main__':
     parser.add_argument('--cluster-id', '-k', help='The cluster Id')
     parser.add_argument('--topic', '-t', help='The topic name')
     parser.add_argument('--client-id', '-i', help='The client ID (if not specified, te hostname is used)')
+    parser.add_argument('--exclude-managed-identity-credential', '-m', help='Disables using the managed identity in Azure authentication which might speed up the login on developer machines. Default: False', action='store_true')
+    parser.add_argument('--debug-azure-authentication', '-d', help='Log debug output from Azure authentication. Default: False', action='store_true')
     parser.add_argument('--config', '-c', help='A config file', default=None)
     parsed_args = parser.parse_args()
     config_file_name = parsed_args.config
@@ -99,6 +96,8 @@ if __name__=='__main__':
     cluster_id = parsed_args.cluster_id
     topic = parsed_args.topic
     client_id = parsed_args.client_id
+    exclude_managed_identity_credential = parsed_args.exclude_managed_identity_credential
+    debug_azure_authentication = parsed_args.debug_azure_authentication
     if config_file_name is not None and config_file_name!="":
         config = read_config_file(config_file_name)
         if app_id is None: app_id = config.get('app_id', None)
@@ -107,8 +106,11 @@ if __name__=='__main__':
         if cluster_id is None: cluster_id = config.get('cluster_id', None)
         if topic is None: topic = config.get('topic', None)
         if client_id is None: client_id = config.get('client_id', None)
+        exclude_managed_identity_credential = config.get('exclude_managed_identity_credential', exclude_managed_identity_credential)
+        debug_azure_authentication = config.get('debug_azure_authentication', debug_azure_authentication)
     if app_id is None or pool_id is None or env_id is None or cluster_id is None or topic is None:
         print ('Please provide either a config file or all individual values as parameters')
         exit (1)
-    producer = CCloud_Azure_Producer(app_id, pool_id, env_id, cluster_id, topic, client_id)
+    auth_provider = CCloud_Auth_Provider_Azure(app_id, pool_id, exclude_managed_identity_credential=exclude_managed_identity_credential, logging_enable=debug_azure_authentication)
+    producer = CCloud_Azure_Producer(auth_provider, env_id, cluster_id, topic, client_id)
     producer.run()

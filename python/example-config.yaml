@@ -5,3 +5,7 @@ cluster_id: 123456
 topic: test
 client_id: example
 consumer_group_id: example
+#debug_azure_authentication: True
+# Managed identities are only useful when the code runs on Azure.
+# Disabling them can speed up the login procedure on machines not running on Azure, e.g. developer machines
+#exclude_managed_identity_credential: True
