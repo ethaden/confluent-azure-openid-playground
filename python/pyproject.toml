@@ -9,11 +9,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-azure-identity = "^1.14.0"
+azure-identity = "^1.17.1"
 request2 = "^0.2"
-pyjwt = {extras = ["crypto"], version = "^2.8.0"}
-pyyaml = "^6.0.1"
-confluent-kafka = "^2.2.0"
+pyjwt = {extras = ["crypto"], version = "^2.9.0"}
+pyyaml = "^6.0.2"
+confluent-kafka = "^2.5.0"
 
 
 [build-system]
