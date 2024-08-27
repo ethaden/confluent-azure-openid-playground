@@ -49,7 +49,7 @@ class CCloud_Azure_Consumer:
                 'client.id': self._client_id or socket.gethostname(),
                 'security.protocol': 'SASL_SSL',
                 'sasl.mechanism': 'OAUTHBEARER',
-                'oauth_cb': lambda config_str: self.get_azure_token_with_expiry(self._cluster_id, config_str),
+                'oauth_cb': lambda config_str: self._auth_provider.get_azure_token_with_expiry(self._cluster_id, config_str),
                 'logger': logger,
                 'key.deserializer': string_deserializer,
                 'value.deserializer': string_deserializer,
