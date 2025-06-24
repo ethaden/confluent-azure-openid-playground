@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = "io.confluent.oidc.azure.example"
-include("listenvironments", "identityprovider")
+include("listenvironments", "identityprovider", "producer-oauth-auto-pool-mapping")
