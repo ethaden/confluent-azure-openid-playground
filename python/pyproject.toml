@@ -8,7 +8,7 @@ readme = "README.md"
 #packages = [{include = "confluent_azure_openid_playground"}]
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.11"
 azure-identity = "*"
 request2 = "*"
 pyjwt = {extras = ["crypto"], version = "*"}
