@@ -3,7 +3,7 @@
  */
 
 plugins {
-    id("io.confluent.oidc.azure.example.java-application-conventions")
+    id("java-application-conventions")
 }
 
 dependencies {

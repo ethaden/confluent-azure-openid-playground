@@ -3,5 +3,5 @@
  */
 
 plugins {
-    id("io.confluent.oidc.azure.example.java-library-conventions")
+    id("java-library-conventions")
 }
