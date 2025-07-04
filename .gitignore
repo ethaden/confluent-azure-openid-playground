@@ -1,3 +1,10 @@
 __pycache__/
 .venv
 python/*.yaml
+.gradle
+
+# Ignore Gradle build output directory
+build
+bin
+java/config
+!java/config/*.template

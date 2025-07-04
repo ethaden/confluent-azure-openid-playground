@@ -8,12 +8,13 @@ readme = "README.md"
 #packages = [{include = "confluent_azure_openid_playground"}]
 
 [tool.poetry.dependencies]
-python = ">=3.8"
-azure-identity = "^1.17.1"
-request2 = "^0.2"
-pyjwt = {extras = ["crypto"], version = "^2.9.0"}
-pyyaml = "^6.0.2"
-confluent-kafka = "^2.5.0"
+python = ">=3.11"
+azure-identity = "*"
+request2 = "*"
+pyjwt = {extras = ["crypto"], version = "*"}
+pyyaml = "*"
+confluent-kafka = "*"
+msal = "*"
 
 
 [build-system]

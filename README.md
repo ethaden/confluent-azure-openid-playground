@@ -70,6 +70,21 @@ claims.aud=='Put your Application (client) ID here' &&
 '<PUT SID OF THE DESIRED SECURITY GROUP HERE>' in claims.groups
 ```
 
+## Troubleshooting
+
+Try to request a token manually, using this call:
+
+```console
+curl --request POST \
+--url 'https://YOUR_DOMAIN/oauth/token' \
+--header 'content-type: application/x-www-form-urlencoded' \
+--data grant_type=client_credentials \
+--data client_id=YOUR_CLIENT_ID \
+--data client_secret=YOUR_CLIENT_SECRET \
+--data scope=YOUR_SCOPE
+```
+
+
 ## License
 
 Copyright Eike Thaden, 2023.

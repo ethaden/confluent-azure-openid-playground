@@ -1,0 +1,36 @@
+bootstrap.servers=<bootstrap URL>
+security.protocol=SASL_SSL
+sasl.oauthbearer.token.endpoint.url=https://myidp.example.com/oauth2/default/v1/token
+# If using Kafka libraries <4.0.0
+#sasl.login.callback.handler.class=org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
+# If using Kafka libraries >=4.0.0
+sasl.login.callback.handler.class=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginCallbackHandler
+sasl.mechanism=OAUTHBEARER
+#sasl.jaas.config= \
+#  org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+#    clientId='<client ID>' \
+#    scope='<Requested Scope>' \
+#    clientSecret='<Client Secret>' \
+#    extension_logicalCluster='<Cluster ID>' \
+#    extension_identityPoolId='<Pool ID>';
+
+# It is possible to skip "extension_identityPoolId" when using OIDC Auto pool mapping in Confluent Cloud
+sasl.jaas.config= \
+  org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+    clientId='<client ID>' \
+    scope='<Requested Scope>' \
+    clientSecret='<Client Secret>' \
+    extension_logicalCluster='<Cluster ID>';
+
+# Required for consumers only:
+group.id=oidc-client-group
+
+# Schema Registry
+schema.registry.url=<schema registry URL>
+bearer.auth.credentials.source=SASL_OAUTHBEARER_INHERIT
+bearer.auth.logical.cluster=<lsrc-resource-id>
+
+# Custom
+topic=test
+# Required for Kafka clients >=4.0: Set this on the command line
+# "-Dorg.apache.kafka.sasl.oauthbearer.allowed.urls="https://login.microsoftonline.com/<TENANT_ID>/oauth2/v2.0/token"
