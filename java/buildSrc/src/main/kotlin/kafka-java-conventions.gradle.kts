@@ -4,5 +4,5 @@ plugins {
 
 dependencies {
     implementation("org.apache.kafka:kafka-clients:8.0.0-ce")
-    //implementation("io.confluent:kafka-streams-avro-serde:8.0.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.+")
 }

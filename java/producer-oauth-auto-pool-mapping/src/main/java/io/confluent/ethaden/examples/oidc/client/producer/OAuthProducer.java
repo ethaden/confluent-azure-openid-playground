@@ -28,6 +28,10 @@ public class OAuthProducer {
         settings.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         this.topic = settings.getProperty("topic", "test");
         settings.remove("topic");
+        // for (String key: settings.stringPropertyNames()) {
+        //     String value = settings.getProperty(key);
+        //     System.out.println(String.format("\"%s\"=\"%s\"", key, value));
+        // }
     }
         
     public static void main(String[] args) {
