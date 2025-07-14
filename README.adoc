@@ -1,4 +1,4 @@
-# This is a playground for using Azure OIDC with Confluent Cloud
+= This is a playground for using Azure OIDC with Confluent Cloud
 
 Please have a look in the subfolders for examples in multiple programming languages.
 
@@ -6,12 +6,12 @@ CAUTION: Everything contained in this repository is not supported by Confluent.
 
 DISCLAIMER AND WARNING: You use this code at your own risk! Please do not use it for production systems. The author may not be held responsible for any harm caused by this code!
 
-## Preconditions
+== Preconditions
 
 This project requires the following setup.
 
 
-### Setup of Azure
+=== Setup of Azure
 
 Create an "App registrations" in your EntraID tenant. This resource is the global representation of your Confluent Cloud organization. It is connected to one Enterprise Application per Azure Tenant, each of them represent the identity of your Confluent Cloud organization in that tenant.
 
@@ -19,7 +19,13 @@ Conceptually, you could either use your user identity or another app registratio
 
 Therefore, when we talk about the app registration or the enterprise application in the following text, we always refer to the app registration/enterprise application which represents your Confluent Cloud organization.
 
-#### Optionally: Create App Roles
+Update the manifest of the app registration and make sure that the version is set like this:
+
+```yaml
+"requestedAccessTokenVersion": 2,
+```
+
+==== Optionally: Create App Roles
 One way to authorize users for specific resources in Confluent Cloud is to configure App Roles in Azure.
 Just add roles to your app registration, for example a role called `OrgAdminRole`, and configure it such that both users/groups and applications may get access to it.
 
@@ -29,15 +35,34 @@ In the `API permissions`, add a new permission with a name of your choice.
 
 The App registration always comes with an "Enterprise Application". You can access this using the overview of the app registration. If you want to use roles, you need to restrict access to the enterprise application to selected users/groups and assign your custom roles to them (you find the settings under `Users and Groups`).
 
-#### Alternatively: Use Security Groups
+==== Alternatively: Use Security Groups
 
 Instead of using roles you can also check for membership in security groups for authorization in Confluent Cloud.
 
 By default, groups are not contained in the tokens issued by Entra ID. In you app registration, you can enable the `groups` token under `Token configuration` by adding a group claim. Make sure to include at least security groups and use the default setting `Group ID` for all of `ID, Access, SAML`.
 
-### Setup of Confluent Cloud
+==== Grant access to the App Registration
 
-#### Add Identity Provider to Workload identities
+You can use regular user accounts in order to acquire access tokens for the CCloud app registration. Alternatively, you can create for each of your clients an addition app registration which represents that client. For each app registration, Azure automatically creates an enterprise application which represents the client in your Azure tenant. You can configure secrets for the individual app registrations (not for the CCloud app registration!) which allows clients to impersonating them.
+
+As a third options, if you run your client code in Azure, you can enable managed identities for your Azure resources. In this case, you can use the managed identity of the resource to acquire access tokens for the CCloud app registration.
+
+If you use roles, grant access to the them to the respective users, enterprise applications, and/or managed identities and make sure you request the correct scope when getting you access tokens.
+
+If you use security groups, you just add the users, enterprise applications or managed identities to the security group(s) you want to use for authorization in Confluent Cloud.
+In this case, you can just request the ".default" scope of your CCloud app registration.
+
+==== How to request an access token
+
+If you use a user, you authenticate to Azure as that user. Then you request an access token for the CCloud app registration using the correct URL (you can look that up in the app registration).
+
+With managed identities, the process is similar. Make sure your code can use the managed identity, then request an access token for the CCloud app registration using the correct URL in your code.
+
+If you want to use app registration for your clients, you can use the secret configured for that app registration in your application to get access to the corresponding identity, then use that identity to request an access token for the CCloud app registration.
+
+=== Setup of Confluent Cloud
+
+==== Add Identity Provider to Workload identities
 
 Configure an Entra ID (formerly called "Azure AD") provider with any name and description.
 
@@ -47,7 +72,7 @@ Set the JWKS URI correctly following the docs, i.e. `
 https://login.microsoftonline.com/organizations/discovery/v2.0/keys`.
 
 
-#### Identity Pool
+==== Identity Pool
 
 Create a new identity pool in the identity provider.
 You can use `claims.sub` as value for the identity claim field.
@@ -70,7 +95,7 @@ claims.aud=='Put your Application (client) ID here' &&
 '<PUT SID OF THE DESIRED SECURITY GROUP HERE>' in claims.groups
 ```
 
-## Troubleshooting
+== Troubleshooting
 
 Try to request a token manually, using this call:
 
@@ -85,7 +110,7 @@ curl --request POST \
 ```
 
 
-## License
+== License
 
 Copyright Eike Thaden, 2023.
 
