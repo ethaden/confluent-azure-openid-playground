@@ -2,6 +2,7 @@ __pycache__/
 .venv
 python/*.yaml
 .gradle
+.metals
 
 # Ignore Gradle build output directory
 build
