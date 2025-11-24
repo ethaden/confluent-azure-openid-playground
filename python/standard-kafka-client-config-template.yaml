@@ -1,0 +1,17 @@
+# Use this template for:
+# ccloud_standard_kafka_producer.py
+# ccloud_standard_kafka_consumer.py
+sasl_oauthbearer_token_endpoint_url: 
+sasl_oauthbearer_client_id: 
+sasl_oauthbearer_client_secret: 
+sasl_oauthbearer_scope: 
+identityPoolId: 
+cluster_id: 
+bootstrap_servers: 
+topic: 
+client_id: 
+consumer_group_id: 
+# if unset, no proxy is used
+#http_proxy: http://proxy.erste.hu:8080
+# if unset, http_proxy is used, if configured
+#https_prox:

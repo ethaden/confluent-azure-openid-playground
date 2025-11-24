@@ -1,3 +1,6 @@
+# Use this template for all examples except for
+# ccloud_standard_kafka_producer.py and
+# ccloud_standard_kafka_consumer.py
 app_id: XXXXX-YYYY-AAA-BBBB-CCCCCCCCCCCC
 pool_id: pool-ABCD
 env_id: t1234556
